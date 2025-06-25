@@ -32,7 +32,7 @@ FollowLine_state_t FollowLine(void)
 	 Linesensor(line_sns_values);
 
 	 // Stop Conditions
-	 if (line_sns_values[0] && line_sns_values[1] && line_sns_values[2] && line_sns_values[3] && line_sns_values[4]) // Auf Wegpunkt
+	 if ((line_sns_values[0] && line_sns_values[1] && line_sns_values[2] && line_sns_values[3]) || (line_sns_values[1] && line_sns_values[2] && line_sns_values[3] && line_sns_values[4])) // Auf Wegpunkt
 	 {
 		 MotR_Control(0);
 		 MotR_Control(0);

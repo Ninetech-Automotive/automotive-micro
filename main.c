@@ -197,7 +197,7 @@ int main(void) {
     		break;
 
     	case START:		// Start ausgelöst
-    		Send_Word("set_target:{A}\n");
+    		Send_Word("set_target:B\n");
     		DbgConsole_Printf("\n\nStart ausgeloest\n\r");
     		SDK_DelayAtLeastUs(100000, SystemCoreClock);
     		state = IDLE;
@@ -299,7 +299,7 @@ int main(void) {
 
 			if(FollowLine() == ON_POINT )
 			{
-				Drive_Straith(Mot_Setup_Forward, 10);
+				Drive_Straith(Mot_Setup_Forward, 13);
 				Send_Word("on_waypoint\n");
 				state = IDLE;
 			}
@@ -360,7 +360,7 @@ int main(void) {
     		MotL_Control(0);
     		MotR_Control(0);
     		Send_Word("stop\n");
-    		state = IDLE;
+    		state = IDLE_START;
 
     		break;
 
