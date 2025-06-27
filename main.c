@@ -197,7 +197,9 @@ int main(void) {
     		break;
 
     	case START:		// Start ausgelöst
-    		Send_Word("set_target:B\n");
+
+
+    		Send_Word("set_target:C\n");
     		DbgConsole_Printf("\n\nStart ausgeloest\n\r");
     		SDK_DelayAtLeastUs(100000, SystemCoreClock);
     		state = IDLE;
@@ -266,10 +268,11 @@ int main(void) {
 
 			break;
 
+
     	case FOLLOW_LINE:
 			uint16_t dist_upper = 0;
 			uint16_t dist_lower = 0;
-			const uint16_t OBSTACLE_DIST_THRESHOLD = 100; // Beispielwert in mm
+			const uint16_t OBSTACLE_DIST_THRESHOLD = 85; // Beispielwert in mm
 			const uint16_t CONE_DIST_THRESHOLD = 100; // Beispielwert in mm
 
 
@@ -284,8 +287,10 @@ int main(void) {
 				Tof_Select(SELECT_UPPER_TOF);
 				SDK_DelayAtLeastUs(1000000U, SystemCoreClock); //1s delay um TOF einzupendeln
 				ToF_PerformSingleMeasurement(&dist_upper);
+				Tof_Select(SELECT_LOWER_TOF);
 				if (dist_upper < CONE_DIST_THRESHOLD) {
 					Send_Word("cone_detected\n");
+					Drive_Straith(Mot_Setup_Backward, 12); // Ein wenig Rückwärts fahren
 					Turn(Turn_Direction_Left, 180); // Umdrehen
 					state = FOLLOW_LINE; // Zurück fahren
 					break;
@@ -307,37 +312,110 @@ int main(void) {
 			break;
 
 		case TURN:
-
-			if (turnDirection == 1) //right
-				{
-					Turn(Turn_Direction_Right, targetAngle); // Blockierend!
-				}
-			else if (turnDirection == 2) //left
-				{
-					Turn(Turn_Direction_Left, targetAngle); // Blockierend!
-				}
+			DbgConsole_Printf("\n\nin Turn State\n\r");
+			if (turnDirection == 1) // right
+			{
+				Turn(Turn_Direction_Right, targetAngle); // Blockierend!
+				SDK_DelayAtLeastUs(1000000U, SystemCoreClock);
+				DbgConsole_Printf("\n\nTurned Right\n\r");
+			}
+			else if (turnDirection == 2) // left
+			{
+				Turn(Turn_Direction_Left, targetAngle); // Blockierend!
+				SDK_DelayAtLeastUs(1000000U, SystemCoreClock);
+				DbgConsole_Printf("\n\nTurned Left\n\r");
+			}
 
 			// Nach dem Drehen: Prüfen, ob eine Linie erkannt wird
+			
+			uint16_t line_sns_values[5];
+			Linesensor(line_sns_values);
+			bool line_found = false;
+			for (int j = 0; j < 5; j++)
 			{
-				uint16_t line_sns_values[5];
+				if (line_sns_values[j])
+				{
+					line_found = true;
+					break;
+				}
+			}
+			if (line_found)
+			{
+				Send_Word("turned_to_target_line\n");
+				state = IDLE;
+			}
+			else
+			{
+				// Versuche, die Linie durch kleine Korrekturen zu finden
+				const int correction_angle = 20;
+				line_found = false;
+
+				// Erst kleine Korrektur in Drehrichtung
+				if (turnDirection == 1)
+				{
+					Turn(Turn_Direction_Right, correction_angle);
+				}
+				else if (turnDirection == 2)
+				{
+					Turn(Turn_Direction_Left, correction_angle);
+				}
 				Linesensor(line_sns_values);
-				bool line_found = false;
-				for (int j = 0; j < 5; j++) {
-					if (line_sns_values[j]) { // Annahme: 1 = Linie erkannt, 0 = keine Linie
+				for (int j = 0; j < 5; j++)
+				{
+					if (line_sns_values[j])
+					{
 						line_found = true;
 						break;
 					}
 				}
-				if (line_found) {
+
+				// Falls nicht gefunden, Korrektur in Gegenrichtung (doppelt so groß)
+				if (!line_found)
+				{
+					if (turnDirection == 1)
+					{
+						Turn(Turn_Direction_Left, correction_angle * 2);
+					}
+					else if (turnDirection == 2)
+					{
+						Turn(Turn_Direction_Right, correction_angle * 2);
+					}
+					Linesensor(line_sns_values);
+					for (int j = 0; j < 5; j++)
+					{
+						if (line_sns_values[j])
+						{
+							line_found = true;
+							break;
+						}
+					}
+					// Falls immer noch nicht gefunden, zurück zur Ausgangsposition
+					if (!line_found)
+					{
+						if (turnDirection == 1)
+						{
+							Turn(Turn_Direction_Right, correction_angle);
+						}
+						else if (turnDirection == 2)
+						{
+							Turn(Turn_Direction_Left, correction_angle);
+						}
+						Send_Word("line_missing\n");
+						state = IDLE;
+					}
+					else
+					{
+						Send_Word("turned_to_target_line\n");
+						state = IDLE;
+					}
+				}
+				else
+				{
 					Send_Word("turned_to_target_line\n");
-					state = FOLLOW_LINE;
-				} else {
-					Send_Word("line_missing\n");
 					state = IDLE;
 				}
 			}
-
-			state = IDLE;
+			
 
 			break;
 
@@ -365,13 +443,27 @@ int main(void) {
     		break;
 
 		case REMOVE_OBSTACLE:
-			// Entfernen des Hindernisses --> TODO: noch implementieren
-			//ServoBigControl(ServoBig_Front);
-			ServoBig_MoveSlowly(ServoBig_Front, 5000);
-			SDK_DelayAtLeastUs(5000000, SystemCoreClock);
-			ServoBig_MoveSlowly(ServoBig_Back, 5000);
-			state = IDLE;
+			// Entfernen des Hindernisses
+			ServoBig_MoveSlowly(ServoBig_Front, 12000);
+			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
+			ServoBig_MoveSlowly(ServoBig_Middle, 12000);
+			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
+
+			// Für ca. 1 Sekunde der Linie folgen
+			for (int i = 0; i < 550; i++) {
+				FollowLine();
+				SDK_DelayAtLeastUs(1000, SystemCoreClock); // 1 ms warten
+			}
+			MotL_Control(0);
+			MotR_Control(0);
+
+			ServoBig_MoveSlowly(ServoBig_Back, 12000);
+			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
+			ServoBig_MoveSlowly(ServoBig_Middle, 12000);
+
+			state = FOLLOW_LINE;
 			break;
+
 
 		case SCAN_POINT:
 			Scan();

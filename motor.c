@@ -219,10 +219,10 @@ void Turn(bool direction, unsigned int degrees)
 				threshold = (targetTicks + (70));
 			}
 			else if (degrees > 45U && degrees <= 90U){
-				threshold = (targetTicks + (35));
+				threshold = (targetTicks + (40));
 			}
 			else { //kleiner gleich 45 grad
-				threshold = targetTicks;
+				threshold = targetTicks + 5;
 		}
         MotL_Direction(Mot_Setup_Forward);
         MotR_Direction(Mot_Setup_Backward);

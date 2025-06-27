@@ -83,12 +83,12 @@ void ServoSmallControl(uint8_t position)
 {
 	if (position == ServoSmall_Closed)
 	{
-		FTM0->CONTROLS[1].CnV = 1500;        // Duty Cycle MotL = 0%
+		FTM0->CONTROLS[1].CnV = 287;        // Duty Cycle MotL = 0%
 	}
 
 	else if (position == ServoSmall_Opened)
 	{
-		FTM0->CONTROLS[1].CnV = 82;        // Duty Cycle MotL = 0%
+		FTM0->CONTROLS[1].CnV = 393;        // Duty Cycle MotL = 0%
 	}
 
 
@@ -107,7 +107,7 @@ void ServoBig_MoveSlowly(uint8_t target, uint32_t stepDelayUs)
     uint16_t targetCnV;
     switch (target)
     {
-        case ServoBig_Front:  targetCnV = 100;  break;
+        case ServoBig_Front:  targetCnV = 90;  break;
         case ServoBig_Middle: targetCnV = 240;  break;
         case ServoBig_Back:   targetCnV = 365;  break;
         default: return; // ungültig
