@@ -157,17 +157,6 @@ int main(void) {
     /* Enter an infinite loop*/
     while(1) {
 
-    	  // Test Schalter
-    	        	if (SW_DIP_A)
-    	        	{
-    	        		DbgConsole_Printf("A\n\r");
-    	        	}
-
-    	        	if (SW_DIP_B)
-    	        	{
-    	        		DbgConsole_Printf("B\n\r");
-    	        	}
-
     	/*
     	Test UART0 Receive and Send Words
     	if (UART_ReadBlocking(UART0, &ch, 1) == kStatus_Success)  // Lies 1 Zeichen

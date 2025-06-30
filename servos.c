@@ -83,7 +83,7 @@ void ServoSmallControl(uint8_t position)
 {
 	if (position == ServoSmall_Closed)
 	{
-		FTM0->CONTROLS[1].CnV = 287;        // Duty Cycle MotL = 0%
+		FTM0->CONTROLS[1].CnV = 170;        // Duty Cycle MotL = 0%
 	}
 
 	else if (position == ServoSmall_Opened)
