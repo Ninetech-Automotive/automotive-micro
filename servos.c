@@ -37,7 +37,7 @@ void ServosInit(void)
 	FTM0->CONTROLS[2].CnSC = FTM_CnSC_MSB_MASK | FTM_CnSC_ELSB_MASK;
 	// Duty-Cycle setzen (CnV = Compare Value)
 	// 3276 = 100%, 0 = 0%
-	FTM0->CONTROLS[1].CnV = 100;        // Duty Cycle MotL = 0%
+	FTM0->CONTROLS[1].CnV = 393;        // Duty Cycle MotL = 0%
 	FTM0->CONTROLS[2].CnV = 240;        // Duty Cycle MotL = 0%
 
 	// Timer starten mit System Clock und Prescaler = 128
@@ -109,7 +109,7 @@ void ServoBig_MoveSlowly(uint8_t target, uint32_t stepDelayUs)
     {
         case ServoBig_Front:  targetCnV = 90;  break;
         case ServoBig_Middle: targetCnV = 240;  break;
-        case ServoBig_Back:   targetCnV = 365;  break;
+        case ServoBig_Back:   targetCnV = 370;  break;
         default: return; // ungültig
     }
 

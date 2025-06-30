@@ -37,6 +37,11 @@
 void Send_Word(char *message);
 
 // *** Defines ***
+
+//Schalter
+#define SW_DIP_A (GPIOD->PDIR & (1<<1))
+#define SW_DIP_B (GPIOD->PDIR & (1<<2))
+
 // Switch
 #define IDLE_START (0)
 #define START (1)
@@ -152,6 +157,17 @@ int main(void) {
     /* Enter an infinite loop*/
     while(1) {
 
+    	  // Test Schalter
+    	        	if (SW_DIP_A)
+    	        	{
+    	        		DbgConsole_Printf("A\n\r");
+    	        	}
+
+    	        	if (SW_DIP_B)
+    	        	{
+    	        		DbgConsole_Printf("B\n\r");
+    	        	}
+
     	/*
     	Test UART0 Receive and Send Words
     	if (UART_ReadBlocking(UART0, &ch, 1) == kStatus_Success)  // Lies 1 Zeichen
@@ -198,8 +214,21 @@ int main(void) {
 
     	case START:		// Start ausgelöst
 
+    		if (SW_DIP_A && !SW_DIP_B)
+			{
+    			Send_Word("set_target:A\n");
+    			DbgConsole_Printf("Target: A\n\r");
+			}
 
-    		Send_Word("set_target:C\n");
+    		else if (SW_DIP_B && !SW_DIP_A)
+			{
+    			Send_Word("set_target:B\n");
+    			DbgConsole_Printf("Target: B\n\r");
+			}
+    		else {
+    			Send_Word("set_target:C\n");
+    			DbgConsole_Printf("Target: C\n\r");
+    		}
     		DbgConsole_Printf("\n\nStart ausgeloest\n\r");
     		SDK_DelayAtLeastUs(100000, SystemCoreClock);
     		state = IDLE;
@@ -272,7 +301,7 @@ int main(void) {
     	case FOLLOW_LINE:
 			uint16_t dist_upper = 0;
 			uint16_t dist_lower = 0;
-			const uint16_t OBSTACLE_DIST_THRESHOLD = 85; // Beispielwert in mm
+			const uint16_t OBSTACLE_DIST_THRESHOLD = 83; // Beispielwert in mm
 			const uint16_t CONE_DIST_THRESHOLD = 100; // Beispielwert in mm
 
 
@@ -347,7 +376,7 @@ int main(void) {
 			else
 			{
 				// Versuche, die Linie durch kleine Korrekturen zu finden
-				const int correction_angle = 20;
+				const int correction_angle = 30;
 				line_found = false;
 
 				// Erst kleine Korrektur in Drehrichtung
@@ -419,19 +448,6 @@ int main(void) {
 
 			break;
 
-			/*
-			// UM WINKEL ZU TESTEN
-			for (x = 0; x <= 7; x++) {
-			    // Winkel in 45°-Schritten: 45, 90, …, 360
-			    uint16_t winkel = (x + 1) * 45;
-
-			    // Immer nach links drehen um den berechneten Winkel
-			    Turn(Turn_Direction_Right, winkel);
-			    SDK_DelayAtLeastUs(15000000, SystemCoreClock);
-
-			}
-			break;
-			*/
 
 
     	case STOPP:
@@ -444,9 +460,11 @@ int main(void) {
 
 		case REMOVE_OBSTACLE:
 			// Entfernen des Hindernisses
-			ServoBig_MoveSlowly(ServoBig_Front, 12000);
+			ServoBig_MoveSlowly(ServoBig_Front, 13000);
 			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
-			ServoBig_MoveSlowly(ServoBig_Middle, 12000);
+			ServoSmallControl(ServoSmall_Closed);
+			SDK_DelayAtLeastUs(500000, SystemCoreClock);
+			ServoBig_MoveSlowly(ServoBig_Middle, 13000);
 			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
 
 			// Für ca. 1 Sekunde der Linie folgen
@@ -457,9 +475,11 @@ int main(void) {
 			MotL_Control(0);
 			MotR_Control(0);
 
-			ServoBig_MoveSlowly(ServoBig_Back, 12000);
+			ServoBig_MoveSlowly(ServoBig_Back, 13000);
 			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
-			ServoBig_MoveSlowly(ServoBig_Middle, 12000);
+			ServoSmallControl(ServoSmall_Opened);
+			SDK_DelayAtLeastUs(500000, SystemCoreClock);
+			ServoBig_MoveSlowly(ServoBig_Middle, 13000);
 
 			state = FOLLOW_LINE;
 			break;
@@ -472,7 +492,9 @@ int main(void) {
     	}
 
     	// Delay von 1 Sekunde
-		//SDK_DelayAtLeastUs(1000000U, CLOCK_GetFreq(kCLOCK_CoreSysClk));
+		//SDK_DelayAtLeastUs(1000000U, CLOCK_GetFreq(kCLOCK_CoreSysClk))
+
+
 
     }
 
