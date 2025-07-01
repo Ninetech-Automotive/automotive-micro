@@ -449,11 +449,22 @@ int main(void) {
 
 		case REMOVE_OBSTACLE:
 			// Entfernen des Hindernisses
-			ServoBig_MoveSlowly(ServoBig_Front, 13000);
+			ServoBig_MoveSlowly(ServoBig_Diagonal, 20000);
+			Drive_Straith(Mot_Setup_Forward, 3);
+			SDK_DelayAtLeastUs(300000, SystemCoreClock);
+			Drive_Straith(Mot_Setup_Backward, 6);
+			SDK_DelayAtLeastUs(300000, SystemCoreClock);
+			Drive_Straith(Mot_Setup_Forward, 3);
+			SDK_DelayAtLeastUs(500000, SystemCoreClock);
+			Turn(Turn_Direction_Right, 5);
+			Turn(Turn_Direction_Left, 10);
+			Turn(Turn_Direction_Right, 5);
+			SDK_DelayAtLeastUs(500000, SystemCoreClock);
+			ServoBig_MoveSlowly(ServoBig_Front, 23000);
 			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
 			ServoSmallControl(ServoSmall_Closed);
 			SDK_DelayAtLeastUs(500000, SystemCoreClock);
-			ServoBig_MoveSlowly(ServoBig_Middle, 13000);
+			ServoBig_MoveSlowly(ServoBig_Middle, 20000);
 			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
 
 			// Für ca. 1 Sekunde der Linie folgen
@@ -464,11 +475,11 @@ int main(void) {
 			MotL_Control(0);
 			MotR_Control(0);
 
-			ServoBig_MoveSlowly(ServoBig_Back, 13000);
+			ServoBig_MoveSlowly(ServoBig_Back, 20000);
 			SDK_DelayAtLeastUs(1000000, SystemCoreClock);
 			ServoSmallControl(ServoSmall_Opened);
 			SDK_DelayAtLeastUs(500000, SystemCoreClock);
-			ServoBig_MoveSlowly(ServoBig_Middle, 13000);
+			ServoBig_MoveSlowly(ServoBig_Middle, 20000);
 
 			state = FOLLOW_LINE;
 			break;

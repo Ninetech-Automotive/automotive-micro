@@ -109,6 +109,7 @@ void ServoBig_MoveSlowly(uint8_t target, uint32_t stepDelayUs)
     {
         case ServoBig_Front:  targetCnV = 90;  break;
         case ServoBig_Middle: targetCnV = 240;  break;
+        case ServoBig_Diagonal: targetCnV = 110; break;
         case ServoBig_Back:   targetCnV = 370;  break;
         default: return; // ungültig
     }

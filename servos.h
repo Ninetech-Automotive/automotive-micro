@@ -18,6 +18,7 @@
 #define ServoBig_Front (0)
 #define ServoBig_Middle (1)
 #define ServoBig_Back (2)
+#define ServoBig_Diagonal (3)
 
 // *** Viariablen ***
 
