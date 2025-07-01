@@ -59,10 +59,11 @@ void Send_Word(char *message);
 
 
 // *** Globale Variablen ***
-uint8_t state = IDLE_START;		// Startzustand Statemachine
+uint8_t state = IDLE;		// Startzustand Statemachine
 unsigned int motl_enc_pos = 0;	// Zähler Position MotL
 int turnDirection = 0;
 int targetAngle = 0;
+bool ping_received = false; 
 
 
 /* PORTD_IRQn interrupt handler */
@@ -199,6 +200,7 @@ int main(void) {
     	{
     	case IDLE_START: // Warten bis Start ausgelösst
 
+
     		break;
 
     	case START:		// Start ausgelöst
@@ -244,15 +246,25 @@ int main(void) {
 
 					// Befehle auswerten
 					if (strcmp((char*)buffer, "ping") == 0)
-					{
-						state = PONG;
+					{	
+						if (!ping_received) {
+							state = PONG;
+							ping_received = true;
+							// UART-Buffer leeren
+							while (UART_GetStatusFlags(UART0) & kUART_RxDataRegFullFlag)
+							{
+								uint8_t dummy;
+								UART_ReadBlocking(UART0, &dummy, 1);
+							}
+						}
 					}
 					else if (strcmp((char*)buffer, "follow_line") == 0)
 					{
 						state = FOLLOW_LINE;
 					}
 					else if (strncmp((char*)buffer, "target_line_angle:", 18) == 0)
-					{
+					{	
+						ping_received = false;
 						int angle = 0;
 						if (sscanf((char*)buffer + 18, "%d", &angle) == 1)
 						{
@@ -274,6 +286,9 @@ int main(void) {
 						state = STOPP;
 					}
 					// sonst bleibt state = IDLE
+
+					// Buffer nach der Auswertung leeren
+					i = 0;
 				}
 			}
 		}
@@ -282,7 +297,10 @@ int main(void) {
 
 		case PONG:
 			Send_Word("pong\n");
-			state = IDLE;
+			ServoSmallControl(ServoSmall_Closed);
+			SDK_DelayAtLeastUs(3000000U, SystemCoreClock);
+			ServoSmallControl(ServoSmall_Opened);
+			state = IDLE_START;
 
 			break;
 
@@ -442,13 +460,21 @@ int main(void) {
     	case STOPP:
     		MotL_Control(0);
     		MotR_Control(0);
+    		ServoSmallControl(ServoSmall_Closed);
+    		ServoSmallControl(ServoSmall_Opened);
+    		ServoSmallControl(ServoSmall_Closed);
+    		ServoSmallControl(ServoSmall_Opened);
+    		ServoSmallControl(ServoSmall_Closed);
+    		ServoSmallControl(ServoSmall_Opened);
     		Send_Word("stop\n");
-    		state = IDLE_START;
+    		ping_received = false;
+    		state = IDLE;
 
     		break;
 
 		case REMOVE_OBSTACLE:
 			// Entfernen des Hindernisses
+			ServoSmallControl(ServoSmall_Opened);
 			ServoBig_MoveSlowly(ServoBig_Diagonal, 20000);
 			Drive_Straith(Mot_Setup_Forward, 3);
 			SDK_DelayAtLeastUs(300000, SystemCoreClock);
