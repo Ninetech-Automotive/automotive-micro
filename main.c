@@ -286,6 +286,9 @@ int main(void) {
 					}
 					else if (strcmp((char*)buffer, "target_reached") == 0)
 					{
+						ServoSmallControl(ServoSmall_Closed);
+						SDK_DelayAtLeastUs(3000000U, SystemCoreClock);
+						ServoSmallControl(ServoSmall_Opened);
 						state = STOPP;
 					}
 					// sonst bleibt state = IDLE
