@@ -63,7 +63,8 @@ uint8_t state = IDLE;		// Startzustand Statemachine
 unsigned int motl_enc_pos = 0;	// Zähler Position MotL
 int turnDirection = 0;
 int targetAngle = 0;
-bool ping_received = false; 
+bool ping_received = false;
+bool stop_available = false;
 
 
 /* PORTD_IRQn interrupt handler */
@@ -73,9 +74,10 @@ void PORTD_IRQHandler(void) {
   /* Place your interrupt code here */
   if (pin_flags & (1<<4))	// Check btn_stopp for rising_edge
   {
-	  DbgConsole_Printf("btn_stop pushed!\n\r");
-	  state = STOPP;
-
+	  if (stop_available) {
+		  DbgConsole_Printf("btn_stop pushed!\n\r");
+		  state = STOPP;
+	  }
   }
   else if (pin_flags & (1<<3)) // Check btn_start for rising edge
   {
@@ -265,6 +267,7 @@ int main(void) {
 					else if (strncmp((char*)buffer, "target_line_angle:", 18) == 0)
 					{	
 						ping_received = false;
+						stop_available = true;
 						int angle = 0;
 						if (sscanf((char*)buffer + 18, "%d", &angle) == 1)
 						{
@@ -468,6 +471,7 @@ int main(void) {
     		ServoSmallControl(ServoSmall_Opened);
     		Send_Word("stop\n");
     		ping_received = false;
+			stop_available = false;
     		state = IDLE;
 
     		break;
